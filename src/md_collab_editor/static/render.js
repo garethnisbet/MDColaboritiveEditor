@@ -91,6 +91,20 @@ const MD = (() => {
     });
   }
 
+  // relative image links point at files beside the document, served under /raw/
+  let docPath = () => '';
+  const ABS_URL = /^(?:[a-z][a-z0-9+.-]*:|\/\/|#)/i;
+  function fixImages(root) {
+    const dir = docPath().split('/').slice(0, -1).map(encodeURIComponent).join('/');
+    const base = new URL(`/raw/${dir}${dir ? '/' : ''}`, location.origin);
+    root.querySelectorAll('img[src]').forEach(img => {
+      const src = img.getAttribute('src');
+      if (!src || ABS_URL.test(src)) return;
+      const u = src.startsWith('/') ? new URL('/raw' + src, location.origin) : new URL(src, base);
+      img.setAttribute('src', u.pathname + u.search);
+    });
+  }
+
   const TASK_RE = /^[ \t>]*(?:[-*+]|\d+[.)])[ \t]+\[([ xX])\]/gm;
 
   // Render `src` into `target`; returns [{el, s, e}] for each top-level block.
@@ -134,6 +148,7 @@ const MD = (() => {
       frag.appendChild(tpl.content);
     }
     alerts(frag);
+    fixImages(frag);
     frag.querySelectorAll('a[href^="http"]').forEach(a => { a.target = '_blank'; a.rel = 'noopener'; });
     target.replaceChildren(frag);
     renderMermaid(target);
@@ -170,5 +185,7 @@ const MD = (() => {
 
   const mermaidDone = () => mermaidQueue;
 
-  return { render, esc, initMermaid, mermaidDone };
+  const setDocPath = fn => { docPath = fn; };
+
+  return { render, esc, initMermaid, mermaidDone, setDocPath };
 })();

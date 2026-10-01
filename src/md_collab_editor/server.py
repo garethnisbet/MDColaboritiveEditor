@@ -12,6 +12,7 @@ up live), and answers "ask Claude" requests by running `claude -p` headless.
 
 import argparse
 import json
+import mimetypes
 import os
 import shutil
 import subprocess
@@ -21,7 +22,7 @@ import time
 import webbrowser
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-from urllib.parse import parse_qs, urlparse
+from urllib.parse import parse_qs, unquote, urlparse
 
 HERE = Path(__file__).resolve().parent
 STATIC = HERE / "static"
@@ -219,7 +220,9 @@ def export_pdf(req):
         raise RuntimeError("PDF export needs Google Chrome or Chromium (or set MDEDIT_CHROME)")
     md = safe_path(req["path"])
     pdf = md.with_suffix(".pdf")
-    page = PDF_TEMPLATE.format(title=md.stem.replace("<", "&lt;"), body=req["html"])
+    # images point at the /raw/ route; Chrome reads them straight from disk instead
+    body = req["html"].replace('src="/raw/', f'src="{ROOT.as_uri()}/')
+    page = PDF_TEMPLATE.format(title=md.stem.replace("<", "&lt;"), body=body)
     # the page sits beside the .md so relative image links resolve
     tmp_html = md.with_name(f".{md.stem}.print.html")
     tmp_html.write_text(page, encoding="utf-8")
@@ -260,6 +263,18 @@ class Handler(SimpleHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
+    def send_raw(self, rel):
+        """Serve a file from the document root (images referenced by the markdown)."""
+        p = safe_path(rel)
+        if not p.is_file():
+            return self.send_json({"error": "not found"}, 404)
+        data = p.read_bytes()
+        self.send_response(200)
+        self.send_header("Content-Type", mimetypes.guess_type(p.name)[0] or "application/octet-stream")
+        self.send_header("Content-Length", str(len(data)))
+        self.end_headers()
+        self.wfile.write(data)
+
     def read_json(self):
         n = int(self.headers.get("Content-Length") or 0)
         return json.loads(self.rfile.read(n) or b"{}")
@@ -295,6 +310,8 @@ class Handler(SimpleHTTPRequestHandler):
                                        "version": version_of(p)})
             if u.path == "/api/events":
                 return self.events()
+            if u.path.startswith("/raw/"):
+                return self.send_raw(unquote(u.path[len("/raw/"):]))
         except (ValueError, KeyError) as exc:
             return self.send_json({"error": str(exc)}, 400)
         return super().do_GET()

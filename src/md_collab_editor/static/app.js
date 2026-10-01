@@ -10,6 +10,7 @@ const store = {
 // ------------------------------------------------------------------ state
 
 const cur = { path: null, version: null, dirty: false, saving: false };
+MD.setDocPath(() => cur.path || '');
 let blocks = [];          // [{el, s, e}] from the last render
 let blockLines = [];      // [{el, line}] for scroll sync
 let cards = [];
