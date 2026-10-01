@@ -1,0 +1,33 @@
+# Publish to PyPI when a version tag (e.g. v0.1.1) is pushed.
+# Uses PyPI trusted publishing, so no API token is stored in the repo.
+name: Publish to PyPI
+
+on:
+  push:
+    tags: ["v*"]
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/project/md-collab-editor/
+    permissions:
+      id-token: write   # lets PyPI verify this workflow
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v7
+
+      - name: Check the tag matches __version__
+        run: |
+          version=$(sed -n 's/^__version__ = "\(.*\)"/\1/p' src/md_collab_editor/__init__.py)
+          if [ "v$version" != "$GITHUB_REF_NAME" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME does not match __version__ $version"
+            exit 1
+          fi
+
+      - run: uv build
+      - name: Smoke-test the wheel
+        run: uvx --from ./dist/*.whl md-editor --help
+      - run: uv publish
