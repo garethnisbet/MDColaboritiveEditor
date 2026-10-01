@@ -23,6 +23,8 @@ let applyingRemote = false;
 const cm = CodeMirror($('#editor'), {
   mode: { name: 'gfm', highlightFormatting: true, fencedCodeBlockHighlighting: true },
   lineWrapping: true,
+  inputStyle: 'contenteditable',   // the browser's spell checker only works on contenteditable input
+  spellcheck: store.get('mdedit.spell', '1') === '1',
   indentUnit: 2,
   tabSize: 4,
   extraKeys: {
@@ -90,6 +92,25 @@ function cmd(name) {
   }
   cm.focus();
 }
+
+// Spell checking: the browser's own checker underlines prose; code, URLs and HTML are excluded.
+const NO_SPELL = '.cm-comment, .cm-url, .cm-string, .cm-tag, .cm-attribute, .cm-formatting-code-block';
+cm.on('renderLine', (c, line, el) => {
+  const st = c.getStateAfter(c.getLineNumber(line) - 1, true);
+  const md = st && (st.base || st);   // gfm wraps the markdown state in an overlay
+  if (md && (md.code || md.localMode || md.fencedEndRE) || el.querySelector('.cm-formatting-code-block')) {
+    el.spellcheck = false;            // inside a fenced or indented code block
+  } else {
+    for (const s of el.querySelectorAll(NO_SPELL)) s.spellcheck = false;
+  }
+});
+function setSpell(on) {
+  cm.setOption('spellcheck', on);
+  $('#spell').classList.toggle('on', on);
+  store.set('mdedit.spell', on ? '1' : '0');
+}
+$('#spell').classList.toggle('on', cm.getOption('spellcheck'));
+$('#spell').onclick = () => setSpell(!cm.getOption('spellcheck'));
 
 $('#toolbar').addEventListener('mousedown', e => e.preventDefault());   // keep editor selection
 $('#toolbar').addEventListener('click', e => {
@@ -391,7 +412,7 @@ $('#preview-pane').addEventListener('mouseup', () => {
     if (!r || r.to <= r.from) return;
     previewRange = r;
     lastSelSource = 'preview';
-    cm.getInputField().blur();   // a focused editor would re-read its hidden textarea as typing
+    cm.getInputField().blur();   // a focused editor would re-read its input field as typing
     cm.setSelection(cm.posFromIndex(r.from), cm.posFromIndex(r.to));
     if (cm.getWrapperElement().offsetParent) cm.scrollIntoView({ from: cm.posFromIndex(r.from), to: cm.posFromIndex(r.to) }, 60);
     openAsk('preview', false);
