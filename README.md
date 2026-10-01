@@ -18,7 +18,7 @@ Or run it once without installing:
 uvx --from md-collab-editor md-editor
 ```
 
-`pipx install md-collab-editor` works too. Upgrade later with `uv tool upgrade md-collab-editor`. For the latest unreleased code, install from GitHub instead: `uv tool install git+https://github.com/garethnisbet/MDColaboritiveEditor`.
+`pipx install md-collab-editor` works too. Upgrade later with `uv tool upgrade md-collab-editor`. For the latest unreleased code, install from GitHub instead: `uv tool install git+https://github.com/garethnisbet/MDCollaborativeEditor`.
 
 ## Run
 

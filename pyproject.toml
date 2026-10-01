@@ -23,8 +23,8 @@ dependencies = []
 md-editor = "md_collab_editor.server:main"
 
 [project.urls]
-Repository = "https://github.com/garethnisbet/MDColaboritiveEditor"
-Issues = "https://github.com/garethnisbet/MDColaboritiveEditor/issues"
+Repository = "https://github.com/garethnisbet/MDCollaborativeEditor"
+Issues = "https://github.com/garethnisbet/MDCollaborativeEditor/issues"
 
 [tool.hatch.version]
 path = "src/md_collab_editor/__init__.py"
