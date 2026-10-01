@@ -118,6 +118,7 @@ body.no-files #files, body.no-claude #claude { display: none; }
 #toolbar .sep { width: 1px; height: 18px; background: var(--border); margin: 0 4px; }
 #toolbar #spell { font-size: 12px; color: var(--fg-muted); text-decoration: line-through; }
 #toolbar #spell.on { color: var(--accent); text-decoration: none; }
+#toolbar #spell:disabled { opacity: 0.4; }
 #toolbar .ask-btn { color: var(--claude); border-color: var(--claude); font-weight: 600; }
 
 #editor { flex: 1; min-height: 0; }
@@ -309,3 +310,21 @@ body.no-files #files, body.no-claude #claude { display: none; }
   .markdown-body pre, .markdown-body table, .markdown-body img, .markdown-body .markdown-alert { break-inside: avoid; }
   .markdown-body h1, .markdown-body h2, .markdown-body h3 { break-after: avoid; }
 }
+
+/* spell checking */
+.cm-spell-error { text-decoration: underline wavy var(--err); text-decoration-skip-ink: none; text-underline-offset: 3px; }
+.nospell .cm-spell-error, .cm-spell-error.nospell { text-decoration: none; }
+#spell-menu {
+  position: fixed; z-index: 40; min-width: 180px; max-width: 260px; padding: 4px;
+  background: var(--bg); color: var(--fg); border: 1px solid var(--border); border-radius: 8px;
+  box-shadow: var(--shadow); font: 13px var(--sans);
+}
+#spell-menu[hidden] { display: none; }
+#spell-menu button {
+  display: block; width: 100%; text-align: left; background: none; border: 0;
+  padding: 4px 8px; border-radius: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+#spell-menu button:hover { background: var(--bg-inset); }
+#spell-menu button.sugg { font-weight: 600; }
+#spell-menu .muted { display: block; padding: 4px 8px; }
+#spell-menu hr { border: 0; border-top: 1px solid var(--border); margin: 4px 0; }

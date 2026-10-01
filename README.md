@@ -59,7 +59,7 @@ Rendering covers GitHub-flavoured markdown: tables, task lists (click the boxes 
 
 ## Editing
 
-The toolbar covers headings, bold, italic, strikethrough, quotes, code, links, images, lists, task lists, tables and rules. Shortcuts: <kbd>Ctrl</kbd>+<kbd>B</kbd>/<kbd>I</kbd>/<kbd>K</kbd>, <kbd>Ctrl</kbd>+<kbd>F</kbd> to search, <kbd>Tab</kbd> to indent, and <kbd>Enter</kbd> to continue lists. Scrolling in the editor and the preview stays in sync, and clicking a preview block moves the cursor to it. Spelling is checked as you type by the browser's own spell checker (code, URLs and HTML are skipped); right-click an underlined word for suggestions or to add it to the dictionary, and click **abc✓** in the toolbar to turn checking off or on.
+The toolbar covers headings, bold, italic, strikethrough, quotes, code, links, images, lists, task lists, tables and rules. Shortcuts: <kbd>Ctrl</kbd>+<kbd>B</kbd>/<kbd>I</kbd>/<kbd>K</kbd>, <kbd>Ctrl</kbd>+<kbd>F</kbd> to search, <kbd>Tab</kbd> to indent, and <kbd>Enter</kbd> to continue lists. Scrolling in the editor and the preview stays in sync, and clicking a preview block moves the cursor to it. Misspelt words get a wavy red underline as you type (British English; code, URLs and HTML are skipped). Right-click one for suggestions, to add it to your dictionary (kept in the browser) or to ignore it, and click **abc✓** in the toolbar to turn checking off or on.
 
 ## Opening files elsewhere
 

@@ -23,8 +23,6 @@ let applyingRemote = false;
 const cm = CodeMirror($('#editor'), {
   mode: { name: 'gfm', highlightFormatting: true, fencedCodeBlockHighlighting: true },
   lineWrapping: true,
-  inputStyle: 'contenteditable',   // the browser's spell checker only works on contenteditable input
-  spellcheck: store.get('mdedit.spell', '1') === '1',
   indentUnit: 2,
   tabSize: 4,
   extraKeys: {
@@ -93,24 +91,78 @@ function cmd(name) {
   cm.focus();
 }
 
-// Spell checking: the browser's own checker underlines prose; code, URLs and HTML are excluded.
+// Spell checking (spell.js): misspelt words get a wavy underline; code, URLs and HTML are skipped.
+let spellOn = store.get('mdedit.spell', '1') === '1';
 const NO_SPELL = '.cm-comment, .cm-url, .cm-string, .cm-tag, .cm-attribute, .cm-formatting-code-block';
 cm.on('renderLine', (c, line, el) => {
+  if (!spellOn || !el.querySelector('.cm-spell-error')) return;
   const st = c.getStateAfter(c.getLineNumber(line) - 1, true);
   const md = st && (st.base || st);   // gfm wraps the markdown state in an overlay
   if (md && (md.code || md.localMode || md.fencedEndRE) || el.querySelector('.cm-formatting-code-block')) {
-    el.spellcheck = false;            // inside a fenced or indented code block
+    el.classList.add('nospell');      // inside a fenced or indented code block
   } else {
-    for (const s of el.querySelectorAll(NO_SPELL)) s.spellcheck = false;
+    for (const s of el.querySelectorAll(NO_SPELL)) s.classList.add('nospell');
   }
 });
+function refreshSpell() {
+  cm.removeOverlay('spell');
+  if (spellOn) cm.addOverlay(SPELL.overlay);
+}
 function setSpell(on) {
-  cm.setOption('spellcheck', on);
+  spellOn = on;
   $('#spell').classList.toggle('on', on);
   store.set('mdedit.spell', on ? '1' : '0');
+  refreshSpell();
 }
-$('#spell').classList.toggle('on', cm.getOption('spellcheck'));
-$('#spell').onclick = () => setSpell(!cm.getOption('spellcheck'));
+$('#spell').classList.toggle('on', spellOn);
+$('#spell').onclick = () => setSpell(!spellOn);
+SPELL.ready.then(refreshSpell, err => {
+  console.warn('Spell check unavailable:', err);
+  $('#spell').title = 'Spell check unavailable: the dictionary could not be loaded';
+  $('#spell').disabled = true;
+});
+
+// Right-click a misspelt word for suggestions, "Add to dictionary" or "Ignore".
+const spellMenu = document.createElement('div');
+spellMenu.id = 'spell-menu';
+spellMenu.hidden = true;
+document.body.append(spellMenu);
+const hideSpellMenu = () => { spellMenu.hidden = true; };
+
+cm.getWrapperElement().addEventListener('contextmenu', e => {
+  const hit = e.target.closest('.cm-spell-error');
+  if (!spellOn || !hit || hit.closest('.nospell')) return;
+  const pos = cm.coordsChar({ left: e.clientX, top: e.clientY }, 'window');
+  const w = SPELL.wordAt(cm.getLine(pos.line), pos.ch);
+  if (!w || SPELL.ok(w.text)) return;
+  e.preventDefault();
+  const from = { line: pos.line, ch: w.from }, to = { line: pos.line, ch: w.to };
+  const act = fn => () => { hideSpellMenu(); fn(); refreshSpell(); cm.focus(); };
+  const item = (label, fn, cls) => {
+    const b = document.createElement('button');
+    b.textContent = label;
+    if (cls) b.className = cls;
+    b.onclick = act(fn);
+    return b;
+  };
+  const sugg = document.createElement('div');
+  sugg.innerHTML = '<span class="muted">Finding suggestions…</span>';
+  spellMenu.replaceChildren(sugg, document.createElement('hr'),
+    item(`Add “${w.text}” to dictionary`, () => SPELL.add(w.text)),
+    item('Ignore', () => SPELL.ignore(w.text)));
+  spellMenu.style.left = Math.min(e.clientX, innerWidth - 260) + 'px';
+  spellMenu.style.top = Math.min(e.clientY, innerHeight - 220) + 'px';
+  spellMenu.hidden = false;
+  SPELL.suggest(w.text).then(list => {
+    if (spellMenu.hidden || !sugg.isConnected) return;
+    sugg.replaceChildren(...(list.length ? list.map(s => item(s, () => {
+      if (cm.getRange(from, to) === w.text) cm.replaceRange(s, from, to, '+spell');
+    }, 'sugg')) : [Object.assign(document.createElement('span'), { className: 'muted', textContent: 'No suggestions' })]));
+  });
+});
+document.addEventListener('mousedown', e => { if (!spellMenu.contains(e.target)) hideSpellMenu(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') hideSpellMenu(); });
+cm.on('scroll', hideSpellMenu);
 
 $('#toolbar').addEventListener('mousedown', e => e.preventDefault());   // keep editor selection
 $('#toolbar').addEventListener('click', e => {
