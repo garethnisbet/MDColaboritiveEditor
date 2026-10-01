@@ -4,19 +4,21 @@ A local markdown editor that renders exactly like GitHub, with Claude built in. 
 
 ## Install
 
-Install it as a command with [uv](https://docs.astral.sh/uv/):
+[![PyPI](https://img.shields.io/pypi/v/md-collab-editor)](https://pypi.org/project/md-collab-editor/)
+
+Install it from PyPI as a command with [uv](https://docs.astral.sh/uv/):
 
 ```bash
-uv tool install git+https://github.com/garethnisbet/MDColaboritiveEditor
+uv tool install md-collab-editor
 ```
 
 Or run it once without installing:
 
 ```bash
-uvx --from git+https://github.com/garethnisbet/MDColaboritiveEditor md-editor
+uvx --from md-collab-editor md-editor
 ```
 
-`pipx install git+https://github.com/garethnisbet/MDColaboritiveEditor` works too. Upgrade later with `uv tool upgrade md-collab-editor`.
+`pipx install md-collab-editor` works too. Upgrade later with `uv tool upgrade md-collab-editor`. For the latest unreleased code, install from GitHub instead: `uv tool install git+https://github.com/garethnisbet/MDColaboritiveEditor`.
 
 ## Run
 
