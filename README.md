@@ -2,14 +2,34 @@
 
 A local markdown editor that renders exactly like GitHub, with Claude built in. You can highlight any passage and ask Claude to rewrite, tighten, restyle or critique it, then accept the suggestion or keep the original.
 
+## Install
+
+Install it as a command with [uv](https://docs.astral.sh/uv/):
+
 ```bash
-python3 server.py                     # edit the files in ./docs
-python3 server.py ~/notes             # edit any folder
-python3 server.py ~/proj/README.md    # edit one file (its folder becomes the root)
-python3 server.py --port 9000 --no-browser
+uv tool install git+https://github.com/garethnisbet/MDColaboritiveEditor
 ```
 
-It needs only Python 3 (standard library) and the `claude` CLI on your PATH. The page loads its libraries from a CDN, so the browser needs internet access.
+Or run it once without installing:
+
+```bash
+uvx --from git+https://github.com/garethnisbet/MDColaboritiveEditor md-editor
+```
+
+`pipx install git+https://github.com/garethnisbet/MDColaboritiveEditor` works too. Upgrade later with `uv tool upgrade md-collab-editor`.
+
+## Run
+
+```bash
+md-editor                       # edit the .md files in the current folder
+md-editor ~/notes               # edit any folder
+md-editor ~/proj/README.md      # edit one file (its folder becomes the root)
+md-editor --port 9000 --no-browser
+```
+
+It needs only Python 3.9+ (standard library, no dependencies) and the `claude` CLI on your PATH; uv can't install `claude`, because it isn't a Python package. Without it, everything except *Ask Claude* still works. The page loads its libraries from a CDN, so the browser needs internet access.
+
+To work on the editor itself, clone the repo and run `uv run md-editor docs`, which uses the code in the checkout.
 
 ## Working with Claude
 
@@ -48,6 +68,8 @@ Click **📂** in the top bar (or *Open…* in the file list, or press <kbd>Ctrl
 Click **⬇ PDF** in the top bar. The document is rendered in GitHub's light style (even in dark mode) on A4 pages, with maths and diagrams included and without Claude's highlights. It is saved as `<name>.pdf` beside the markdown file and downloaded by the browser. Relative image links resolve because the page is printed from the markdown file's folder. This uses headless Google Chrome or Chromium; set `MDEDIT_CHROME=/path/to/chrome` if it isn't found on the PATH. For the browser's own print dialog, press <kbd>Ctrl</kbd>+<kbd>P</kbd>; the print stylesheet prints only the rendered document.
 
 ## Files
+
+All code lives in `src/md_collab_editor/`:
 
 - `server.py`: HTTP server (file API, folder browsing and root switching, change events, `/api/ask` → `claude -p`, `/api/pdf` → headless Chrome)
 - `static/index.html`, `static/app.css`: layout and GitHub-style theme

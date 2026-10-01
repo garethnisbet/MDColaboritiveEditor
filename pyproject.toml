@@ -1,0 +1,17 @@
+[project]
+name = "md-collab-editor"
+version = "0.1.0"
+description = "Local GitHub-style markdown editor shared between you and Claude Code"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = []
+
+[project.scripts]
+md-editor = "md_collab_editor.server:main"
+
+[project.urls]
+Repository = "https://github.com/garethnisbet/MDColaboritiveEditor"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

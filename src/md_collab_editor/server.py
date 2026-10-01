@@ -5,9 +5,9 @@ Serves the editor UI, reads and writes .md files under a root folder, pushes
 on-disk changes to the browser (so edits made by Claude Code in a terminal show
 up live), and answers "ask Claude" requests by running `claude -p` headless.
 
-    python3 server.py                 # edit ./docs
-    python3 server.py ~/notes         # edit a folder
-    python3 server.py ~/proj/README.md  # edit one file (its folder becomes the root)
+    md-editor                     # edit the current folder
+    md-editor ~/notes             # edit a folder
+    md-editor ~/proj/README.md    # edit one file (its folder becomes the root)
 """
 
 import argparse
@@ -29,7 +29,7 @@ SKILLS_DIR = Path.home() / ".claude" / "skills"
 MD_EXT = (".md", ".markdown")
 SKIP_DIRS = {"node_modules", "__pycache__", ".git", ".venv", "venv"}
 
-ROOT: Path = HERE / "docs"
+ROOT: Path = Path.cwd()
 CLAUDE_BIN = shutil.which("claude") or "claude"
 CHROME_BIN = next((b for b in (os.environ.get("MDEDIT_CHROME"), "google-chrome", "google-chrome-stable",
                                "chromium", "chromium-browser") if b and shutil.which(b)), None)
@@ -375,7 +375,7 @@ INITIAL = None
 def main():
     global ROOT, INITIAL
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("path", nargs="?", default=str(HERE / "docs"), help="folder or .md file to edit")
+    ap.add_argument("path", nargs="?", default=".", help="folder or .md file to edit (default: current folder)")
     ap.add_argument("--port", type=int, default=8765)
     ap.add_argument("--no-browser", action="store_true")
     args = ap.parse_args()
